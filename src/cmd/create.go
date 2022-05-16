@@ -416,6 +416,10 @@ func createContainer(container, image, release string, showCommandToEnter bool) 
 		"--env", toolboxPathEnvArg,
 	}
 
+	if currentUser.Uid != "0" {
+		createArgs = append(createArgs, []string{"--group-add", "keep-groups"}...)
+	}
+
 	createArgs = append(createArgs, xdgRuntimeDirEnv...)
 
 	createArgs = append(createArgs, []string{

@@ -323,24 +323,6 @@ func GetFullyQualifiedImageFromDistros(image, release string) (string, error) {
 	return "", fmt.Errorf("failed to resolve image %s", image)
 }
 
-// GetGroupForSudo returns the name of the sudoers group.
-//
-// Some distros call it 'sudo' (eg. Ubuntu) and some call it 'wheel' (eg. Fedora).
-func GetGroupForSudo() (string, error) {
-	logrus.Debug("Looking up group for sudo")
-
-	groups := []string{"sudo", "wheel"}
-
-	for _, group := range groups {
-		if _, err := user.LookupGroup(group); err == nil {
-			logrus.Debugf("Group for sudo is %s", group)
-			return group, nil
-		}
-	}
-
-	return "", errors.New("group for sudo not found")
-}
-
 // GetHostID returns the ID from the os-release files
 //
 // Examples:

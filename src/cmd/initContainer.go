@@ -393,17 +393,10 @@ func configureUsers(targetUserUid int,
 		}
 	}
 
-	sudoGroup, err := utils.GetGroupForSudo()
-	if err != nil {
-		return fmt.Errorf("failed to get group for sudo: %w", err)
-	}
-
 	if targetUserExists {
 		logrus.Debugf("Modifying user %s with UID %d:", targetUser, targetUserUid)
 
 		usermodArgs := []string{
-			"--append",
-			"--groups", sudoGroup,
 			"--home", targetUserHome,
 			"--shell", targetUserShell,
 			"--uid", fmt.Sprint(targetUserUid),
@@ -422,7 +415,6 @@ func configureUsers(targetUserUid int,
 		logrus.Debugf("Adding user %s with UID %d:", targetUser, targetUserUid)
 
 		useraddArgs := []string{
-			"--groups", sudoGroup,
 			"--home-dir", targetUserHome,
 			"--no-create-home",
 			"--shell", targetUserShell,
@@ -450,6 +442,15 @@ func configureUsers(targetUserUid int,
 
 	if err := shell.Run("passwd", nil, nil, nil, "--delete", "root"); err != nil {
 		return fmt.Errorf("failed to remove password for root: %w", err)
+	}
+
+	logrus.Debugf("Allow sudo right for user %s", targetUser)
+	sudoersTemplate := `# Written by toolbox
+%%%s        ALL=(ALL)       NOPASSWD: ALL
+`
+
+	if err := ioutil.WriteFile("/etc/sudoers.d/toolbox", []byte(fmt.Sprintf(sudoersTemplate, targetUser)), 0600); err != nil {
+		return fmt.Errorf("failed to create /etc/sudoers.d/toolbox: %w", err)
 	}
 
 	return nil
